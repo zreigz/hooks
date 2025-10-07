@@ -1,0 +1,57 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-migration
+  annotations:
+    deployment.plural.sh/sync-hook: sync
+    deployment.plural.sh/sync-hook-delete-policy: succeeded
+    deployment.plural.sh/sync-wave: "0"
+spec:
+  template:
+    spec:
+      containers:
+        - name: migration
+          image: postgres:14
+          command: ["sh", "-c", "echo 'Running DB migrations' && sleep 15 && exit 1"]
+      restartPolicy: Never
+---
+# main-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: main-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: main-app
+  template:
+    metadata:
+      labels:
+        app: main-app
+    spec:
+      containers:
+        - name: app
+          image: nginx:1.21
+          ports:
+            - containerPort: 80
+
+
+---
+# cleanup-job.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cleanup-job
+  annotations:
+    deployment.plural.sh/sync-hook: sync-fail
+    deployment.plural.sh/sync-hook-delete-policy: succeeded
+    deployment.plural.sh/sync-wave: "-10"
+spec:
+  template:
+    spec:
+      containers:
+        - name: cleanup
+          image: alpine:3.16
+          command: ["sh", "-c", "echo 'Performing cleanup tasks' && sleep 20"]
+      restartPolicy: Never
