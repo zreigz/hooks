@@ -1,19 +1,27 @@
-apiVersion: batch/v1
-kind: Job
+apiVersion: v1
+kind: Pod
 metadata:
-  name: db-migration
+  name: fail-after-10s
+  labels:
+    app: fail-after-10s
   annotations:
     deployment.plural.sh/sync-hook: sync
     deployment.plural.sh/sync-hook-delete-policy: succeeded
     deployment.plural.sh/sync-wave: "0"
 spec:
-  template:
-    spec:
-      containers:
-        - name: migration
-          image: postgres:14
-          command: ["sh", "-c", "echo 'Running DB migrations' && sleep 15 && exit 1"]
-      restartPolicy: Never
+  restartPolicy: Never
+  containers:
+    - name: fail-container
+      image: busybox
+      command:
+        - sh
+        - -c
+        - |
+          echo "Pod started... will fail in 10 seconds";
+          sleep 10;
+          echo "Now failing intentionally!";
+          exit 1
+
 ---
 # main-deployment.yaml
 apiVersion: apps/v1
