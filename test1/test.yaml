@@ -108,5 +108,5 @@ spec:
       containers:
         - name: cleanup
           image: alpine:3.16
-          command: ["sh", "-c", "echo 'Performing cleanup tasks' && sleep 5"]
+          command: ["sh", "-c", "echo 'Performing cleanup tasks' && sleep 50"]
       restartPolicy: Never
