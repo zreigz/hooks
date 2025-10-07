@@ -1,0 +1,98 @@
+# pre-sync-job.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pre-sync-job
+  annotations:
+    deployment.plural.sh/sync-hook: pre-sync
+    deployment.plural.sh/sync-hook-delete-policy: succeeded
+    deployment.plural.sh/sync-wave: "-1"
+spec:
+  template:
+    spec:
+      containers:
+        - name: pre-sync
+          image: alpine:3.16
+          command: ["sh", "-c", "echo 'Executing pre-sync tasks' && sleep 10"]
+      restartPolicy: Never
+---
+# db-migration.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-migration
+  annotations:
+    deployment.plural.sh/sync-hook: sync
+    deployment.plural.sh/sync-hook-delete-policy: succeeded
+    deployment.plural.sh/sync-wave: "0"
+spec:
+  template:
+    spec:
+      containers:
+        - name: migration
+          image: postgres:14
+          command: ["sh", "-c", "echo 'Running DB migrations' && sleep 15"]
+      restartPolicy: Never
+---
+# main-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: main-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: main-app
+  template:
+    metadata:
+      labels:
+        app: main-app
+    spec:
+      containers:
+        - name: app
+          image: nginx:1.21
+          ports:
+            - containerPort: 80
+---
+# post-sync-validation.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: post-sync-validation
+  annotations:
+    deployment.plural.sh/sync-hook: post-sync
+    deployment.plural.sh/sync-hook-delete-policy: succeeded
+    deployment.plural.sh/sync-wave: "1"
+spec:
+  template:
+    spec:
+      containers:
+        - name: validation
+          image: curlimages/curl
+          command:
+            - sh
+            - -c
+            - |
+              echo "Validating deployment..."
+              sleep 5
+              curl -f http://main-app
+      restartPolicy: Never
+---
+# cleanup-job.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cleanup-job
+  annotations:
+    deployment.plural.sh/sync-hook: post-sync
+    deployment.plural.sh/sync-hook-delete-policy: succeeded
+    deployment.plural.sh/sync-wave: "2"
+spec:
+  template:
+    spec:
+      containers:
+        - name: cleanup
+          image: alpine:3.16
+          command: ["sh", "-c", "echo 'Performing cleanup tasks' && sleep 5"]
+      restartPolicy: Never
