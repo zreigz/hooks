@@ -6,7 +6,7 @@ metadata:
     app: fail-after-10s
   annotations:
     deployment.plural.sh/sync-hook: sync
-    deployment.plural.sh/sync-hook-delete-policy: succeeded
+    deployment.plural.sh/sync-hook-delete-policy: failed
     deployment.plural.sh/sync-wave: "0"
 spec:
   restartPolicy: Never
