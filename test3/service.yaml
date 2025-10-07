@@ -1,0 +1,19 @@
+apiVersion: deployments.plural.sh/v1alpha1
+kind: ServiceDeployment
+metadata:
+  name: test2
+  namespace: default
+spec:
+  git:
+    folder: test2
+    ref: master
+  helm:
+    ignoreHooks: false
+  repositoryRef:
+    kind: GitRepository
+    name: hooks
+    namespace: default
+  clusterRef:
+    kind: Cluster
+    name: existing
+    namespace: default
