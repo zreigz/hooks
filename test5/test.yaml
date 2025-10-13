@@ -1,0 +1,78 @@
+# pre-sync-job.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pre-pro-sync-job
+  annotations:
+    deployment.plural.sh/sync-hook: pre-sync,post-sync
+    deployment.plural.sh/sync-hook-delete-policy: hook-succeeded
+    deployment.plural.sh/sync-wave: "-1"
+spec:
+  template:
+    spec:
+      containers:
+        - name: pre-sync
+          image: alpine:3.16
+          command: ["sh", "-c", "echo 'Executing pre-sync tasks' && sleep 10"]
+      restartPolicy: Never
+
+---
+# main-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: main-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: main-app
+  template:
+    metadata:
+      labels:
+        app: main-app
+    spec:
+      containers:
+        - name: app
+          image: nginx:1.21
+          ports:
+            - containerPort: 80
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: main-app
+spec:
+  selector:
+    app: main-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+
+---
+# post-sync-validation.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: post-sync-validation
+  annotations:
+    deployment.plural.sh/sync-hook: post-sync
+    deployment.plural.sh/sync-hook-delete-policy: hook-succeeded
+    deployment.plural.sh/sync-wave: "1"
+spec:
+  template:
+    spec:
+      containers:
+        - name: validation
+          image: curlimages/curl
+          command:
+            - sh
+            - -c
+            - |
+              echo "Validating deployment..."
+              sleep 5
+              curl -f http://main-app
+      restartPolicy: Never
+
