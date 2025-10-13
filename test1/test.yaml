@@ -5,7 +5,7 @@ metadata:
   name: pre-sync-job
   annotations:
     deployment.plural.sh/sync-hook: pre-sync
-    deployment.plural.sh/sync-hook-delete-policy: succeeded
+    deployment.plural.sh/sync-hook-delete-policy: hook-succeeded
     deployment.plural.sh/sync-wave: "-1"
 spec:
   template:
@@ -23,7 +23,7 @@ metadata:
   name: db-migration
   annotations:
     deployment.plural.sh/sync-hook: sync
-    deployment.plural.sh/sync-hook-delete-policy: succeeded
+    deployment.plural.sh/sync-hook-delete-policy: hook-succeeded
     deployment.plural.sh/sync-wave: "0"
 spec:
   template:
@@ -76,7 +76,7 @@ metadata:
   name: post-sync-validation
   annotations:
     deployment.plural.sh/sync-hook: post-sync
-    deployment.plural.sh/sync-hook-delete-policy: succeeded
+    deployment.plural.sh/sync-hook-delete-policy: hook-succeeded
     deployment.plural.sh/sync-wave: "1"
 spec:
   template:
@@ -100,7 +100,7 @@ metadata:
   name: cleanup-job
   annotations:
     deployment.plural.sh/sync-hook: post-sync
-    deployment.plural.sh/sync-hook-delete-policy: succeeded
+    deployment.plural.sh/sync-hook-delete-policy: hook-succeeded
     deployment.plural.sh/sync-wave: "2"
 spec:
   template:
